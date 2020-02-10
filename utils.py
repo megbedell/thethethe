@@ -3,6 +3,7 @@ from astropy.io import fits
 import dace
 from dace.spectroscopy import Spectroscopy
 import tarfile
+import os
 
 def download_spectra(starname, n_files=2):
     # query:
@@ -28,9 +29,10 @@ def download_spectra(starname, n_files=2):
     tar = tarfile.open('{0}.tar.gz'.format(starname), "r:gz")
     files = []
     for tarinfo in tar:
-        files.append(tarinfo.name)
-    tar.extractall()
+        files.append('harps-data/'+tarinfo.name)
+    tar.extractall(path='./harps-data/')
     tar.close()
+    os.remove('{0}.tar.gz'.format(starname))
     return files
 
 def read_spectrum(specfile):
