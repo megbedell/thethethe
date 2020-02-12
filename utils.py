@@ -5,6 +5,8 @@ from dace.spectroscopy import Spectroscopy
 import tarfile
 import os
 
+speed_of_light = 3.e8 # m/s
+
 def download_spectra(starname, n_files=2):
     # query:
     observedTargets = Spectroscopy.query_database(limit=100,
@@ -42,10 +44,10 @@ def read_spectrum(specfile):
     return wave, flux
 
 def calc_rv_err(wave, flux, dw=0.01, perpix=False):
-    flux = np.abs(flux) # TOTAL HACK relying on negatives fluxes being v v small anyway
+    flux = np.abs(flux) # TOTAL HACK relying on negative fluxes being v v small anyway
     err_flux = np.sqrt(flux) # Poisson noise
     df_dw = (np.roll(flux, -1) - np.roll(flux, 1)) / (2. * dw) # local slope - will fail for first/last pixels
-    df_dv = df_dw * wave / 2.e8
+    df_dv = df_dw * wave / speed_of_light
     err_rv_perpix = err_flux / df_dv
     mask = (wave > 5300.) & (wave < 5340.)
     err_rv_perpix = err_rv_perpix[~mask] # trim between chips
