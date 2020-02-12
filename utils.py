@@ -10,8 +10,7 @@ speed_of_light = 3.e8 # m/s
 def download_spectra(starname, n_files=2):
     # query:
     observedTargets = Spectroscopy.query_database(limit=100,
-                                              filters={'public': {'is':True},
-                                                       'obj_id_catname': {'contains': starname},
+                                              filters={'obj_id_catname': {'contains': starname},
                                                        'ins_name': {'contains': 'HARPS'},
                                                        'ins_mode': {'contains': 'HARPS'}})
     to_download = []
