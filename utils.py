@@ -1,7 +1,7 @@
 import numpy as np
 from astropy.io import fits
-import dace
-from dace.spectroscopy import Spectroscopy
+#import dace
+#from dace.spectroscopy import Spectroscopy
 import tarfile
 import os
 
@@ -25,7 +25,7 @@ def download_spectra(starname, n_files=2):
         print("Insufficient data returned for {0}".format(starname))
         return None
     # download:
-    Spectroscopy.download_files('s1d', to_download, '{0}.tar.gz'.format(starname))
+    Spectroscopy.download_files('all', to_download, '{0}.tar.gz'.format(starname))
     # unpack:
     tar = tarfile.open('{0}.tar.gz'.format(starname), "r:gz")
     files = []
@@ -42,6 +42,22 @@ def read_spectrum(specfile):
     wave = np.arange(len(flux)) * hdul[0].header['CDELT1'] + hdul[0].header['CRVAL1']
     return wave, flux
 
+def get_dvrms(drsfile):
+    hdul = fits.open(drsfile)
+    return hdul[0].header['HIERARCH ESO DRS DVRMS']
+        
+def get_snr(drsfile):
+    hdul = fits.open(drsfile)
+    return hdul[0].header['HIERARCH ESO DRS SPE EXT SN63']
+
+def get_exptime(drsfile):
+    hdul = fits.open(drsfile)
+    return hdul[0].header['EXPTIME']
+
+def get_object(drsfile):
+    hdul = fits.open(drsfile)
+    return hdul[0].header['OBJECT']
+
 def calc_rv_err(wave, flux, dw=0.01, perpix=False):
     flux = np.abs(flux) # TOTAL HACK relying on negative fluxes being v v small anyway
     err_flux = np.sqrt(flux) # Poisson noise
@@ -50,6 +66,8 @@ def calc_rv_err(wave, flux, dw=0.01, perpix=False):
     err_rv_perpix = err_flux / df_dv
     mask = (wave > 5300.) & (wave < 5340.)
     err_rv_perpix = err_rv_perpix[~mask] # trim between chips
+    wave = wave[~mask]
+    err_rv_perpix = err_rv_perpix[wave < 6860] # trim tellurics
     err_rv_perpix = err_rv_perpix[1:-2] # trim ends
     if perpix:
         flux_perpix = flux[~mask]
